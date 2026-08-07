@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>VESPERIA DEFENSE NETWORK // FILE 07</title>
+
+<!-- ==========================================================
+     FONTS
+     "Special Elite"  -> typewriter body copy
+     "Black Ops One"  -> heavy stencil font for stamps / headers
+     ========================================================== -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Black+Ops+One&display=swap" rel="stylesheet">
+
+<style>
+/* =============================================================
+   0. DESIGN TOKENS
+   ============================================================= */
+:root{
+  --paper-cream:   #f3e9cf;
+  --paper-manila:  #d8ccb0;
+  --paper-shadow:  #c4b596;
+  --paper-dark:    #b9a97f;
+  --ink:           #262119;
+  --ink-soft:      #4a4331;
+  --red-stamp:     #a11f1f;
+  --red-stamp-dark:#7c1616;
+  --redact:        #100e0a;
+  --gold-clip:     #a9862f;
+  --gold-clip-lt:  #d4b25c;
+  --tab-line:      #8d7c56;
+
+  --font-type: 'Special Elite', 'Courier Prime', 'Courier New', monospace;
+  --font-stamp: 'Black Ops One', 'Courier New', monospace;
+
+  --edge-shadow: 0 10px 25px rgba(20,15,5,0.35), 0 2px 4px rgba(20,15,5,0.25);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+
+body{
+  font-family:var(--font-type);
+  color:var(--ink);
+  background:
+    radial-gradient(ellipse at top left, rgba(0,0,0,0.06), transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(0,0,0,0.08), transparent 60%),
+    var(--paper-manila);
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Paper grain texture applied everywhere via a fixed overlay */
+.grain{
+  pointer-events:none;
+  position:fixed;
+  inset:0;
+  z-index:999;
+  opacity:0.05;
+  mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Diagonal repeating watermark, sits behind all content */
+.watermark{
+  position:fixed;
+  inset:-10%;
+  z-index:0;
+  pointer-events:none;
+  display:flex;
+  flex-wrap:wrap;
+  align-content:space-between;
+  transform:rotate(-28deg);
+  opacity:0.05;
+}
+.watermark span{
+  font-family:var(--font-stamp);
+  font-size:13vw;
+  letter-spacing:0.05em;
+  white-space:nowrap;
+  color:var(--red-stamp-dark);
+  margin:2vw 4vw;
+}
+
+a{color:inherit;}
+
+/* =============================================================
+   1. REDACTION BARS  (solid black boxes hiding "classified" text)
+   ============================================================= */
+.redact{
+  display:inline-block;
+  background:var(--redact);
+  color:transparent;
+  border-radius:1px;
+  user-select:none;
+  padding:0 .35em;
+  min-width:3.5em;
+  transform:skew(-1deg);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03);
+}
+.redact.block{
+  display:block;
+  width:100%;
+  height:0.9em;
+  margin:0.35em 0;
+}
+
+/* =============================================================
+   2. STAMPS
+   ============================================================= */
+.stamp{
+  display:inline-block;
+  font-family:var(--font-stamp);
+  color:var(--red-stamp);
+  border:3px solid var(--red-stamp);
+  padding:0.35em 0.7em;
+  border-radius:4px;
+  transform:rotate(-6deg);
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  position:relative;
+  filter:saturate(1.1);
+  mix-blend-mode:multiply;
+  opacity:0.92;
+}
+.stamp::before,.stamp::after{
+  content:"";
+  position:absolute;
+  inset:-6px;
+  border:1px solid var(--red-stamp);
+  border-radius:6px;
+  opacity:0.35;
+}
+.stamp.small{font-size:0.65rem;padding:0.2em 0.5em;border-width:2px;}
+
+/* =============================================================
+   3. COVER SCREEN  (TAB 1)
+   ============================================================= */
+#cover{
+  position:relative;
+  z-index:1;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:6vw 5vw;
+  transition:opacity 0.7s ease, transform 0.7s ease;
+}
+#cover.closing{
+  opacity:0;
+  transform:scale(0.96) translateY(-12px);
+  pointer-events:none;
+}
+
+.folder{
+  max-width:640px;
+  width:100%;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0) 12%),
+    var(--paper-cream);
+  border:1px solid var(--paper-dark);
+  box-shadow:var(--edge-shadow);
+  padding:clamp(1.4rem,5vw,3rem);
+  position:relative;
+}
+.folder::before{ /* torn / stitched edge feel */
+  content:"";
+  position:absolute;
+  inset:8px;
+  border:1px dashed rgba(38,33,25,0.25);
+  pointer-events:none;
+}
+.folder-tab{
+  position:absolute;
+  top:-18px;
+  left:32px;
+  background:var(--paper-dark);
+  color:var(--ink);
+  font-family:var(--font-stamp);
+  font-size:0.65rem;
+  letter-spacing:0.1em;
+  padding:6px 14px;
+  border:1px solid var(--tab-line);
+  border-bottom:none;
+}
+
+.top-secret-banner{
+  text-align:center;
+  font-family:var(--font-stamp);
+  color:var(--red-stamp);
+  font-size:clamp(1rem,3.4vw,1.6rem);
+  line-height:1.5;
+  letter-spacing:0.03em;
+  border-top:3px double var(--red-stamp);
+  border-bottom:3px double var(--red-stamp);
+  padding:0.8em 0.2em;
+  margin-bottom:1.4em;
+}
+.top-secret-banner small{
+  display:block;
+  font-family:var(--font-type);
+  color:var(--ink);
+  font-size:0.62rem;
+  letter-spacing:0.08em;
+  margin-top:0.5em;
+  text-transform:none;
+}
+
+.warning-box{
+  border:2px solid var(--ink);
+  background:repeating-linear-gradient(135deg, rgba(161,31,31,0.07) 0 10px, transparent 10px 20px);
+  padding:0.9em 1.1em;
+  font-size:0.85rem;
+  line-height:1.55;
+  margin-bottom:1.6em;
+  position:relative;
+}
+.warning-box b{color:var(--red-stamp-dark);}
+
+.file-meta{
+  font-size:0.88rem;
+  line-height:1.9;
+  margin-bottom:1.8em;
+}
+.file-meta .k{opacity:0.7;}
+
+.open-btn-wrap{text-align:center;}
+.open-btn{
+  font-family:var(--font-stamp);
+  background:var(--ink);
+  color:var(--paper-cream);
+  border:none;
+  padding:0.95em 1.6em;
+  font-size:clamp(0.8rem,2.6vw,1rem);
+  letter-spacing:0.08em;
+  cursor:pointer;
+  position:relative;
+  box-shadow:4px 4px 0 var(--red-stamp);
+  transition:transform 0.15s ease, box-shadow 0.15s ease;
+}
+.open-btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--red-stamp);}
+.open-btn:active{transform:translate(1px,1px);box-shadow:2px 2px 0 var(--red-stamp);}
+.blink{animation:blink 1.1s steps(1) infinite;}
+@keyframes blink{50%{opacity:0;}}
+
+.stamp-corner{
+  position:absolute;
+  top:14px;
+  right:18px;
+  transform:rotate(8deg);
+}
+
+/* =============================================================
+   4. MAIN DOSSIER SHELL
+   ============================================================= */
+#dossier{
+  position:relative;
+  z-index:1;
+  display:none;
+  opacity:0;
+  transition:opacity 0.6s ease;
+  min-height:100vh;
+  flex-direction:column;
+}
+#dossier.visible{display:flex;opacity:1;}
+
+header.masthead{
+  background:var(--ink);
+  color:var(--paper-cream);
+  padding:0.9rem clamp(0.9rem,4vw,2.5rem);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:4px solid var(--red-stamp);
+  position:sticky;
+  top:0;
+  z-index:40;
+}
+.masthead-title{
+  font-family:var(--font-stamp);
+  font-size:clamp(0.72rem,2.2vw,0.95rem);
+  letter-spacing:0.06em;
+  line-height:1.4;
+}
+.masthead-title span{display:block;font-family:var(--font-type);font-size:0.68em;color:var(--red-stamp);letter-spacing:0.12em;margin-top:2px;}
+
+.menu-btn{
+  display:none;
+  flex-direction:column;
+  gap:4px;
+  background:none;
+  border:1px solid var(--paper-cream);
+  padding:8px 10px;
+  cursor:pointer;
+}
+.menu-btn span{width:20px;height:2px;background:var(--paper-cream);display:block;}
+
+/* Tab navigation styled like folder divider tabs */
+nav.tabs{
+  display:flex;
+  gap:0.4rem;
+  background:var(--paper-shadow);
+  padding:0.6rem clamp(0.9rem,4vw,2.5rem) 0;
+  border-bottom:1px solid var(--tab-line);
+  position:sticky;
+  top:60px;
+  z-index:39;
+  overflow-x:auto;
+}
+.tab-btn{
+  font-family:var(--font-stamp);
+  font-size:0.68rem;
+  letter-spacing:0.08em;
+  background:var(--paper-manila);
+  color:var(--ink-soft);
+  border:1px solid var(--tab-line);
+  border-bottom:none;
+  padding:0.7em 1.1em;
+  cursor:pointer;
+  white-space:nowrap;
+  transform:translateY(4px);
+  transition:transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.tab-btn:hover{transform:translateY(0);}
+.tab-btn.active{
+  background:var(--paper-cream);
+  color:var(--red-stamp-dark);
+  transform:translateY(0);
+  border-bottom:1px solid var(--paper-cream);
+}
+
+main{
+  flex:1;
+  padding:clamp(1.2rem,4vw,2.5rem) clamp(0.9rem,4vw,2.5rem) 4rem;
+  max-width:1000px;
+  width:100%;
+  margin:0 auto;
+}
+
+.panel{display:none;animation:fadein 0.45s ease;}
+.panel.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* sheet = a page inside the folder */
+.sheet{
+  background:var(--paper-cream);
+  border:1px solid var(--paper-dark);
+  box-shadow:var(--edge-shadow);
+  padding:clamp(1.1rem,4vw,2.2rem);
+  margin-bottom:1.6rem;
+  position:relative;
+}
+.sheet + .sheet{margin-top:-0.6rem;}
+.sheet .corner-clip{
+  position:absolute;
+  top:-10px;
+  left:50%;
+  transform:translateX(-50%);
+  width:30px;
+  height:14px;
+  background:linear-gradient(180deg,var(--gold-clip-lt),var(--gold-clip));
+  border-radius:3px;
+  box-shadow:0 2px 3px rgba(0,0,0,0.35);
+}
+
+.sheet h2{
+  font-family:var(--font-stamp);
+  font-size:clamp(1rem,3vw,1.3rem);
+  color:var(--ink);
+  border-bottom:2px solid var(--ink);
+  padding-bottom:0.5em;
+  margin:0 0 0.9em;
+  letter-spacing:0.03em;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:0.6em;
+  flex-wrap:wrap;
+}
+.sheet h3{
+  font-family:var(--font-stamp);
+  font-size:0.85rem;
+  color:var(--red-stamp-dark);
+  letter-spacing:0.04em;
+  margin:1.4em 0 0.6em;
+}
+.sheet p{line-height:1.7;font-size:0.92rem;margin:0 0 0.9em;}
+.doc-ref{font-size:0.7rem;color:var(--ink-soft);letter-spacing:0.05em;}
+
+/* form-style key/value rows for personnel sheet */
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0.7em 1.4em;
+  font-size:0.88rem;
+  margin-bottom:0.4em;
+}
+.form-row .k{
+  display:block;
+  font-size:0.65rem;
+  letter-spacing:0.1em;
+  color:var(--ink-soft);
+  text-transform:uppercase;
+  margin-bottom:0.15em;
+}
+.form-row .v{border-bottom:1px dotted var(--tab-line);padding-bottom:0.2em;}
+
+.biometrics-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(110px,1fr));
+  gap:0.8em;
+  margin:1em 0;
+}
+.bio-chip{
+  border:1px solid var(--tab-line);
+  padding:0.6em 0.7em;
+  text-align:center;
+  background:rgba(255,255,255,0.25);
+}
+.bio-chip .k{display:block;font-size:0.6rem;letter-spacing:0.08em;color:var(--ink-soft);margin-bottom:0.25em;}
+.bio-chip .v{font-family:var(--font-stamp);font-size:0.9rem;}
+
+/* photo / image placeholders (redacted silhouette) */
+.photo-slot{
+  border:1px solid var(--ink);
+  background:
+    repeating-linear-gradient(45deg, #171512 0 6px, #0c0a08 6px 12px);
+  aspect-ratio:3/4;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+.photo-slot img{width:100%;height:100%;object-fit:cover;display:block;}
+.photo-slot .ph-label{
+  font-family:var(--font-stamp);
+  color:var(--red-stamp);
+  font-size:0.7rem;
+  letter-spacing:0.1em;
+  border:1px solid var(--red-stamp);
+  padding:0.3em 0.5em;
+  transform:rotate(-8deg);
+  background:rgba(0,0,0,0.4);
+}
+
+.loadout-layout{
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:1.4rem;
+  align-items:start;
+}
+@media (max-width:560px){ .loadout-layout{grid-template-columns:1fr;} .loadout-layout .photo-slot{max-width:220px;margin:0 auto;} }
+
+.spec-list{list-style:none;margin:0;padding:0;}
+.spec-list li{
+  padding:0.6em 0;
+  border-bottom:1px dashed var(--tab-line);
+  font-size:0.88rem;
+  line-height:1.6;
+}
+.spec-list li b{display:block;font-family:var(--font-stamp);font-size:0.7rem;letter-spacing:0.05em;color:var(--ink-soft);margin-bottom:0.2em;}
+
+/* Accordion component: used for skills / medical / roster */
+.acc-item{border:1px solid var(--tab-line);margin-bottom:0.6em;background:rgba(255,255,255,0.2);}
+.acc-header{
+  width:100%;
+  text-align:left;
+  background:var(--paper-manila);
+  border:none;
+  padding:0.8em 1em;
+  font-family:var(--font-type);
+  font-size:0.88rem;
+  color:var(--ink);
+  cursor:pointer;
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:0.6em;
+}
+.acc-header .tag{font-family:var(--font-stamp);font-size:0.75rem;color:var(--red-stamp-dark);}
+.acc-header .sub{display:block;font-size:0.7rem;color:var(--ink-soft);margin-top:2px;}
+.acc-icon{font-family:var(--font-stamp);font-size:1rem;transition:transform 0.25s ease;}
+.acc-item.open .acc-icon{transform:rotate(45deg);}
+.acc-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.32s ease;}
+.acc-item.open .acc-body,
+.roster-card.open .acc-body{grid-template-rows:1fr;}
+.acc-body-inner{overflow:hidden;}
+.acc-body p{padding:0 1em 1em;margin:0;font-size:0.86rem;line-height:1.65;}
+
+/* Field notes bullet list */
+.field-notes{list-style:none;margin:0;padding:0;}
+.field-notes li{
+  position:relative;
+  padding:0.4em 0 0.4em 1.4em;
+  font-size:0.88rem;
+  line-height:1.6;
+}
+.field-notes li::before{
+  content:"▸";
+  position:absolute;
+  left:0;
+  color:var(--red-stamp-dark);
+}
+
+/* Country tab */
+.pull-quote{
+  font-family:var(--font-stamp);
+  font-size:0.78rem;
+  color:var(--ink-soft);
+  letter-spacing:0.04em;
+  border-left:3px solid var(--red-stamp);
+  padding-left:0.8em;
+  margin:0 0 1.2em;
+  line-height:1.7;
+}
+.threat-box{
+  border:2px solid var(--red-stamp-dark);
+  padding:1em 1.1em;
+  margin-top:1em;
+  background:repeating-linear-gradient(135deg, rgba(161,31,31,0.05) 0 10px, transparent 10px 20px);
+}
+.threat-box h4{
+  font-family:var(--font-stamp);
+  color:var(--red-stamp-dark);
+  font-size:0.8rem;
+  letter-spacing:0.06em;
+  margin:0 0 0.6em;
+}
+
+/* Archive photo grid ("pinned photographs") */
+.photo-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:1.2rem;
+  margin:1.2em 0 0.4em;
+}
+.pin-photo{position:relative;}
+.pin-photo .photo-slot{transform:rotate(var(--rot,0deg));box-shadow:0 6px 12px rgba(0,0,0,0.35);}
+.pin-photo:nth-child(1){--rot:-4deg;}
+.pin-photo:nth-child(2){--rot:3deg;}
+.pin-photo:nth-child(3){--rot:-2deg;}
+.pin-photo:nth-child(4){--rot:4deg;}
+.pin-photo .pin-dot{
+  position:absolute;
+  top:-7px;left:50%;
+  transform:translateX(-50%);
+  width:14px;height:14px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #e35b5b, #7c1616 70%);
+  box-shadow:0 2px 3px rgba(0,0,0,0.5);
+  z-index:2;
+}
+.pin-caption{text-align:center;font-size:0.68rem;letter-spacing:0.08em;margin-top:0.4em;color:var(--ink-soft);}
+
+/* Roster grid */
+.roster-grid{display:grid;grid-template-columns:1fr;gap:0.7rem;margin-top:1em;}
+.roster-card{border:1px solid var(--tab-line);background:rgba(255,255,255,0.2);}
+.roster-head{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:0.8em;
+  padding:0.8em 1em;
+  cursor:pointer;
+  background:var(--paper-manila);
+}
+.roster-num{
+  font-family:var(--font-stamp);
+  font-size:0.75rem;
+  color:var(--paper-cream);
+  background:var(--ink);
+  width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.roster-names{line-height:1.35;}
+.roster-names .callsign{font-family:var(--font-stamp);font-size:0.92rem;}
+.roster-names .real{font-size:0.72rem;color:var(--ink-soft);}
+.roster-role{font-size:0.66rem;letter-spacing:0.06em;color:var(--red-stamp-dark);text-transform:uppercase;text-align:right;}
+
+/* Footer */
+footer{
+  text-align:center;
+  font-size:0.68rem;
+  letter-spacing:0.06em;
+  color:var(--ink-soft);
+  padding:1.6em 1em 2.4em;
+}
+
+/* Audio control pill */
+.audio-toggle{
+  position:fixed;
+  bottom:16px;
+  right:16px;
+  z-index:60;
+  font-family:var(--font-stamp);
+  font-size:0.65rem;
+  letter-spacing:0.08em;
+  background:var(--ink);
+  color:var(--paper-cream);
+  border:1px solid var(--red-stamp);
+  padding:0.6em 0.9em;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:0.5em;
+}
+.audio-toggle .dot{width:7px;height:7px;border-radius:50%;background:var(--red-stamp);}
+.audio-toggle.muted .dot{background:#555;}
+.audio-toggle .bars{display:flex;gap:2px;align-items:flex-end;height:10px;}
+.audio-toggle .bars i{width:2px;background:var(--red-stamp);display:block;animation:eq 0.9s ease-in-out infinite;}
+.audio-toggle.muted .bars i{animation-play-state:paused;background:#555;height:3px !important;}
+.audio-toggle .bars i:nth-child(1){animation-delay:0s;}
+.audio-toggle .bars i:nth-child(2){animation-delay:0.15s;}
+.audio-toggle .bars i:nth-child(3){animation-delay:0.3s;}
+@keyframes eq{0%,100%{height:3px;}50%{height:10px;}}
+
+/* =============================================================
+   5. RESPONSIVE / MOBILE TACTICAL MENU
+   ============================================================= */
+@media (max-width:760px){
+  .menu-btn{display:flex;}
+  nav.tabs{
+    display:none;
+    flex-direction:column;
+    position:fixed;
+    top:56px;
+    left:0;right:0;
+    background:var(--paper-shadow);
+    padding:0.6rem;
+    border-bottom:2px solid var(--red-stamp);
+    max-height:70vh;
+    overflow-y:auto;
+  }
+  nav.tabs.open{display:flex;}
+  .tab-btn{transform:none;text-align:left;border-bottom:1px solid var(--tab-line);}
+  .form-grid{grid-template-columns:1fr;}
+  .biometrics-grid{grid-template-columns:repeat(2,1fr);}
+}
+
+@media (max-width:420px){
+  .top-secret-banner{font-size:0.9rem;}
+  .open-btn{width:100%;}
+}
+
+.hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<!-- Ambient background layers -->
+<div class="grain"></div>
+<div class="watermark" aria-hidden="true">
+  <span>TOP SECRET</span><span>EYES ONLY</span><span>RESTRICTED</span>
+  <span>TOP SECRET</span><span>EYES ONLY</span><span>RESTRICTED</span>
+  <span>TOP SECRET</span><span>EYES ONLY</span><span>RESTRICTED</span>
+</div>
+
+<!-- ============================================================
+     BACKGROUND MUSIC
+     Replace src below with your own track. File expected next to
+     this HTML file. autoplay is attempted on load and, if blocked
+     by the browser, is retried on the "OPEN DOSSIER FILE" click
+     (a genuine user gesture, which browsers always allow).
+     ============================================================ -->
+<audio id="bgm" src="bgm_music.mp3" loop preload="auto"></audio>
+<button id="audioToggle" class="audio-toggle" aria-label="Toggle background audio">
+  <span class="dot"></span>
+  <span class="bars"><i style="height:6px"></i><i style="height:10px"></i><i style="height:4px"></i></span>
+  <span id="audioLabel">BGM ON</span>
+</button>
+
+<!-- ============================================================
+     TAB 1 — COVER FOLDER
+     ============================================================ -->
+<section id="cover">
+  <div class="folder">
+    <div class="folder-tab">FILE // 07-G7-ROOK</div>
+    <div class="stamp stamp-corner small">CLASSIFIED</div>
+
+    <div class="top-secret-banner">
+      [ TOP SECRET // EYES ONLY ]<br>
+      VESPERIA DEFENSE NETWORK<br>PERSONNEL ARCHIVE FILE 07
+      <small>STATUS: RESTRICTED ACCESS // LEVEL 4 CLEARANCE REQUIRED</small>
+    </div>
+
+    <div class="warning-box">
+      <b>[!] NOTICE:</b> UNAUTHORIZED DISCLOSURE IS PUNISHABLE UNDER VESPERIAN
+      MILITARY TRIBUNAL CODE SEC. 88-B. ALL ACCESS ATTEMPTS ARE MONITORED BY
+      HIGH COMMAND.
+    </div>
+
+    <div class="file-meta">
+      <div><span class="k">&gt; FILE SUBJECT:</span> TASK FORCE G7 &amp; OPERATIVE "ROOK"</div>
+      <div><span class="k">&gt; AUTHORIZATION CODE:</span> [ ENTERED VIA GUEST OVERRIDE ]</div>
+    </div>
+
+    <div class="open-btn-wrap">
+      <button class="open-btn" id="openDossierBtn">
+        &gt;&gt;&gt; [ OPEN DOSSIER FILE ] <span class="blink">&lt;&lt;&lt;</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     MAIN DOSSIER APP  (TABS 2, 3, 4)
+     ============================================================ -->
+<div id="dossier">
+
+  <header class="masthead">
+    <div class="masthead-title">
+      VESPERIA DEFENSE NETWORK
+      <span>ARCHIVE FILE 07 // LEVEL 4 CLEARANCE</span>
+    </div>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <nav class="tabs" id="tabNav">
+    <button class="tab-btn active" data-target="profile">01 // SUBJECT: ROOK</button>
+    <button class="tab-btn" data-target="country">02 // NATION: URV</button>
+    <button class="tab-btn" data-target="archive">03 // G7 ARCHIVE &amp; ROSTER</button>
+  </nav>
+
+  <main>
+
+    <!-- ============================================================
+         TAB 2 — ROOK PROFILE
+         ============================================================ -->
+    <section class="panel active" id="panel-profile">
+
+      <div class="sheet">
+        <div class="corner-clip"></div>
+        <h2>PERSONNEL FILE <span class="doc-ref">DOC-ROOK-G7-002</span></h2>
+        <div class="form-grid">
+          <div class="form-row"><span class="k">Callsign</span><span class="v">Rook</span></div>
+          <div class="form-row"><span class="k">Status</span><span class="v">Active / Disavowable Asset</span></div>
+          <div class="form-row"><span class="k">Rank</span><span class="v"><span class="redact">Master Sergeant — Tier-1 Senior Operative</span></span></div>
+          <div class="form-row"><span class="k">Assigned Unit</span><span class="v">Task Force G7 (Generation Two)</span></div>
+          <div class="form-row"><span class="k">Role</span><span class="v">Lead Breacher / CQB Specialist</span></div>
+          <div class="form-row"><span class="k">Identity</span><span class="v"><span class="redact block"></span>DATA EXPUNGED BY ORDER OF HIGH COMMAND</span></div>
+        </div>
+      </div>
+
+      <div class="sheet">
+        <h2>BIOMETRICS &amp; PHYSICAL PARAMETERS</h2>
+        <div class="biometrics-grid">
+          <div class="bio-chip"><span class="k">Height</span><span class="v">6'4"</span></div>
+          <div class="bio-chip"><span class="k">Weight</span><span class="v">235 lbs</span></div>
+          <div class="bio-chip"><span class="k">Blood Type</span><span class="v">O-Negative</span></div>
+        </div>
+        <h3>Psychological Evaluation</h3>
+        <p>Exhibits a flat emotional baseline during high-stress hostile engagements. Zero sympathetic nervous system spikes recorded during close-quarters lethal operations. Highly disciplined, completely non-communicative verbally under fire. Renders absolute compliance to squad directives while operating independently within fatal funnels.</p>
+      </div>
+
+      <div class="sheet">
+        <h2>SKILLS &amp; SPECIALIZATION</h2>
+        <div class="acc-group">
+          <div class="acc-item">
+            <button class="acc-header" data-acc>
+              <span><span class="tag">Threshold Dominance &amp; Room-Clearing</span></span>
+              <span class="acc-icon">+</span>
+            </button>
+            <div class="acc-body"><div class="acc-body-inner"><p>Master-level execution of dynamic and stealth architectural breaching.</p></div></div>
+          </div>
+          <div class="acc-item">
+            <button class="acc-header" data-acc>
+              <span><span class="tag">Non-Verbal Tactical Communication</span></span>
+              <span class="acc-icon">+</span>
+            </button>
+            <div class="acc-body"><div class="acc-body-inner"><p>Fluent in advanced military hand-signaling, allowing completely silent tactical coordination.</p></div></div>
+          </div>
+          <div class="acc-item">
+            <button class="acc-header" data-acc>
+              <span><span class="tag">Close-Quarters Combatives</span></span>
+              <span class="acc-icon">+</span>
+            </button>
+            <div class="acc-body"><div class="acc-body-inner"><p>Brutal, hyper-efficient utility of combat knives and kinetic neutralization techniques.</p></div></div>
+          </div>
+          <div class="acc-item">
+            <button class="acc-header" data-acc>
+              <span><span class="tag">High-Stress Adaptation</span></span>
+              <span class="acc-icon">+</span>
+            </button>
+            <div class="acc-body"><div class="acc-body-inner"><p>Complete suppression of panic response; remains mechanically calm under heavy multi-vector ambushes.</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet">
+        <h2>MEDICAL RECORD</h2>
+        <div class="acc-group">
+          <div class="acc-item">
+            <button class="acc-header" data-acc>
+              <span><span class="tag">Trauma History</span></span>
+              <span class="acc-icon">+</span>
+            </button>
+            <div class="acc-body"><div class="acc-body-inner"><p>Multiple low-velocity fragmentation scars across torso and limbs from prior engagements.</p></div></div>
+          </div>
+          <div class="acc-item">
+            <button class="acc-header" data-acc>
+              <span><span class="tag">Orthopedic Notes</span></span>
+              <span class="acc-icon">+</span>
+            </button>
+            <div class="acc-body"><div class="acc-body-inner"><p>Chronic bilateral knee and lower back joint strain; managed via rigid carbon-fiber tactical bracing.</p></div></div>
+          </div>
+          <div class="acc-item">
+            <button class="acc-header" data-acc>
+              <span><span class="tag">Auditory Profile</span></span>
+              <span class="acc-icon">+</span>
+            </button>
+            <div class="acc-body"><div class="acc-body-inner"><p>Mild industrial hearing loss in left ear from explosive breaches; mitigated by integrated comms headset filtering.</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet">
+        <h2>LOADOUT SPECIFICATIONS</h2>
+        <div class="loadout-layout">
+          <!-- Replace src with a real loadout image, e.g. images/rook_loadout.jpg -->
+          <div class="photo-slot">
+            <img src="images/rook_loadout.jpg" alt="Operative Rook field loadout"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="ph-label" style="display:none; position:absolute; inset:0; align-items:center; justify-content:center;">
+              <span>IMAGE<br>WITHHELD</span>
+            </div>
+          </div>
+          <ul class="spec-list">
+            <li><b>Primary Weapon</b>V-AR "Chimera" — .300 Blackout short-barreled assault rifle, equipped with an integrated thermal-holographic sight and a heavy-duty heat-wrapped suppressor.</li>
+            <li><b>Sidearm &amp; Melee</b>Heavy-duty 6-inch full-tang carbon steel tactical combat knife with a non-reflective black finish and steel pommel.</li>
+            <li><b>Protection</b>NIJ Level IIIA Kevlar-reinforced tactical half-mask ("The Blank Slate") paired with blackout, scratch-resistant polarized ballistic goggles and a fire-resistant combat chassis.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="sheet">
+        <h2>COMBAT BEHAVIOR &amp; FIELD NOTES</h2>
+        <ul class="field-notes">
+          <li>Operates as the primary wedge during high-risk structural clearings in hostile urban zones.</li>
+          <li>Relies strictly on pre-combat synchronicity and non-verbal hand signals rather than radio chatter.</li>
+          <li>Maintains an unnerving, mechanical calmness that acts as a psychological anchor for the rest of G7 under heavy ambush.</li>
+        </ul>
+      </div>
+
+    </section>
+
+    <!-- ============================================================
+         TAB 3 — THE COUNTRY
+         ============================================================ -->
+    <section class="panel" id="panel-country">
+      <div class="sheet">
+        <div class="corner-clip"></div>
+        <h2>STRATEGIC OVERVIEW <span class="doc-ref">MINISTRY OF DEFENSE // VIS</span></h2>
+        <p class="pull-quote">&gt; CLASSIFIED DOSSIER // EYES ONLY<br>&gt; SUBJECT: STRATEGIC OVERVIEW &amp; UNIT LINEAGE — TASK FORCE G7</p>
+
+        <h3>Nation State Profile</h3>
+        <p>The United Republic of Vesperia (URV) functions as a highly strategic, rapidly expanding economic power, maintaining critical oversight of global shipping lanes and high-capacity deep-water ports. Geographically, the nation is defined by severe topographical and socioeconomic contrast — hyper-wealthy, automated urban hubs walled off from dense, rugged mountain ranges and primordial frontier forests.</p>
+
+        <h3>Capital Metropolis: Nova Kaelen</h3>
+        <p>Nova Kaelen operates as the sprawling national epicenter. Vertical neon-and-glass corporate towers loom directly over decaying, brutalist concrete sectors. The metropolis remains a permanent crucible of high-end industrial espionage, syndicate-run corruption, and violent underground dissent.</p>
+
+        <div class="threat-box">
+          <h4>ACTIVE THREAT MATRIX — THE 2020s CRISIS</h4>
+          <p>Vesperia is currently embroiled in an unacknowledged, asymmetric shadow war against the Shattered Crown Initiative (SCI) — a heavily capitalized, ultra-nationalist separatist insurgent faction.</p>
+          <h3 style="margin-top:1em;">Hostile Tactics</h3>
+          <p>The SCI employs modern hybrid warfare, including weaponized commercial drone swarms, infrastructure-wide cyber-disruption, and ruthless urban guerrilla tactics.</p>
+          <h3>Operational Deadlock</h3>
+          <p>By intentionally embedding themselves within the high-density civilian populace of Nova Kaelen's slums, the insurgents render traditional military deployment, heavy artillery, and conventional airstrikes entirely unviable. With public panic rising, state command structures are facing structural collapse.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TAB 4 — G7 BACKGROUND & ROSTER
+         ============================================================ -->
+    <section class="panel" id="panel-archive">
+
+      <div class="sheet">
+        <div class="corner-clip"></div>
+        <h2>HISTORICAL ARCHIVE <span class="doc-ref">DOC-ARC-1998-RESTRICTED</span></h2>
+        <p class="pull-quote">&gt; CLASSIFIED MILITARY ARCHIVE // EYES ONLY<br>&gt; SUBJECT: Task Force G7 Historical Lineage &amp; Dossier Excerpt</p>
+
+        <h3>SECTION I — GENERATION ONE: THE 1998 "ARCLIGHT" CRISIS</h3>
+        <p>In the late 1990s, Vesperia was undergoing a fragile recovery period following the conclusion of a brutal border war. The original Task Force G7 was commissioned as an elite counter-terrorism strike element, achieving legendary status within underground intelligence networks.</p>
+        <p>In 1998, a rogue military faction captured a major hydroelectric installation, issuing direct threats to breach the facility and flood an adjacent civilian valley. Citing delicate international optics and diplomatic protocol, the Vesperian administration commanded G7 to stand down and leave negotiations to state officials.</p>
+        <p>Anticipating absolute diplomatic failure and mass civilian casualties, the original G7 operatives severed communication links, went rogue, and assaulted the facility. The tactical objective was successfully accomplished, but the government immediately disavowed the unit. To bury political fallout, active members were officially branded as traitors and systematically hunted down. All historical records of the unit were permanently expunged from military history.</p>
+
+        <h3>SECTION II — GENERATION TWO: THE 2020s RESURRECTION</h3>
+        <p>For over two decades, "Group 7" remained a taboo military legend — a cautionary ghost story circulated among cadets to deter insubordination. The destabilization of Nova Kaelen by the Shattered Crown Initiative in the 2020s proved that traditional military doctrines were entirely ineffective.</p>
+        <p>High command required absolute deniability — operators authorized to execute extreme measures and absorb political blowback. They required ghosts. The military reinstated the G7 framework, sweeping the armed forces for seven isolated outcasts: highly lethal combatants with no family, zero political connections, and nothing left to lose.</p>
+        <p>Upon squad finalization, operators were briefed on the suppressed truth of Generation One's fate. Rather than retreating, the new team claimed the G7 callsign as a badge of honor. The squad operates with clear-eyed awareness that the Vesperian government may ultimately target them just like their predecessors — a shared acknowledgment of complete expendability that forged an impenetrable psychological bond. They do not fight to serve politicians; their allegiance is bound strictly to Vesperia and to one another.</p>
+      </div>
+
+      <div class="sheet">
+        <h2>G7 VISUAL ARCHIVE <span class="doc-ref">SELECTED COLLECTION</span></h2>
+        <div class="photo-grid">
+          <!-- Replace each src with a real archive photo, e.g. images/g7_archive_01.jpg -->
+          <figure class="pin-photo">
+            <span class="pin-dot"></span>
+            <div class="photo-slot">
+              <img src="images/g7_archive_01.jpg" alt="G7 archive photo 1"
+                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <div class="ph-label" style="display:none; position:absolute; inset:0; align-items:center; justify-content:center;">FILE 01</div>
+            </div>
+            <figcaption class="pin-caption">Caption: Redacted</figcaption>
+          </figure>
+          <figure class="pin-photo">
+            <span class="pin-dot"></span>
+            <div class="photo-slot">
+              <img src="images/g7_archive_02.jpg" alt="G7 archive photo 2"
+                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <div class="ph-label" style="display:none; position:absolute; inset:0; align-items:center; justify-content:center;">FILE 02</div>
+            </div>
+            <figcaption class="pin-caption">Caption: Redacted</figcaption>
+          </figure>
+          <figure class="pin-photo">
+            <span class="pin-dot"></span>
+            <div class="photo-slot">
+              <img src="images/g7_archive_03.jpg" alt="G7 archive photo 3"
+                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <div class="ph-label" style="display:none; position:absolute; inset:0; align-items:center; justify-content:center;">FILE 03</div>
+            </div>
+            <figcaption class="pin-caption">Caption: Redacted</figcaption>
+          </figure>
+          <figure class="pin-photo">
+            <span class="pin-dot"></span>
+            <div class="photo-slot">
+              <img src="images/g7_archive_04.jpg" alt="G7 archive photo 4"
+                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <div class="ph-label" style="display:none; position:absolute; inset:0; align-items:center; justify-content:center;">FILE 04</div>
+            </div>
+            <figcaption class="pin-caption">Caption: Redacted</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div class="sheet">
+        <h2>GENERATION TWO ROSTER <span class="doc-ref">ACTIVE OPERATORS</span></h2>
+        <div class="roster-grid" id="rosterGrid">
+          <!-- Roster items injected identically in HTML for clarity; each is an accordion -->
+
+          <div class="roster-card">
+            <div class="roster-head" data-acc>
+              <span class="roster-num">1</span>
+              <span class="roster-names"><span class="callsign">Vanguard</span><span class="real">Captain Aaron Vance</span></span>
+              <span class="roster-role">Squad Leader<br>Tactical Coordinator</span>
+            </div>
+            <div class="acc-body"><div class="acc-body-inner"><p>Decorated former Special Forces officer stripped of his rank after refusing an order that would have caused massive civilian casualties in Nova Kaelen. Acts as the calm, strategic spine of G7.</p></div></div>
+          </div>
+
+          <div class="roster-card">
+            <div class="roster-head" data-acc>
+              <span class="roster-num">2</span>
+              <span class="roster-names"><span class="callsign">Whisper</span><span class="real">Lieutenant Elena Rostova</span></span>
+              <span class="roster-role">Sniper<br>ISR</span>
+            </div>
+            <div class="acc-body"><div class="acc-body-inner"><p>Raised in Vesperia's rugged eastern mountains, Rostova served in an elite scout unit before her team was compromised by high-level government leaks. Provides overwatch and real-time feeds from Nova Kaelen's rooftops.</p></div></div>
+          </div>
+
+          <div class="roster-card">
+            <div class="roster-head" data-acc>
+              <span class="roster-num">3</span>
+              <span class="roster-names"><span class="callsign">Sledge</span><span class="real">Sergeant Marcus Holloway</span></span>
+              <span class="roster-role">Heavy Weapons<br>Demolitions</span>
+            </div>
+            <div class="acc-body"><div class="acc-body-inner"><p>Ex-combat engineer specializing in explosive urban breaching. Recruited after taking the fall for a black-market weapons sting he actually uncovered. The warm-hearted big brother of the squad off-duty.</p></div></div>
+          </div>
+
+          <div class="roster-card">
+            <div class="roster-head" data-acc>
+              <span class="roster-num">4</span>
+              <span class="roster-names"><span class="callsign">Patch</span><span class="real">Dr. Mateo Alvarez</span></span>
+              <span class="roster-role">Combat Medic<br>Field Surgeon</span>
+            </div>
+            <div class="acc-body"><div class="acc-body-inner"><p>Former trauma surgeon at Nova Kaelen Central who lost his medical license for treating wounded street refugees off-the-books. Copes with war via dry, morbid humor and fanatical loyalty to his team's survival.</p></div></div>
+          </div>
+
+          <div class="roster-card">
+            <div class="roster-head" data-acc>
+              <span class="roster-num">5</span>
+              <span class="roster-names"><span class="callsign">Glitch</span><span class="real">Maya Sterling</span></span>
+              <span class="roster-role">SIGINT<br>Cyber-Warfare</span>
+            </div>
+            <div class="acc-body"><div class="acc-body-inner"><p>Former black-hat hacker who infiltrated Vesperia's defense networks as a teenager. Given a choice between maximum security prison or G7 service, she now handles drone recon, comms jamming, and cracking enemy servers.</p></div></div>
+          </div>
+
+          <div class="roster-card">
+            <div class="roster-head" data-acc>
+              <span class="roster-num">6</span>
+              <span class="roster-names"><span class="callsign">Trace</span><span class="real">Silas Kane</span></span>
+              <span class="roster-role">Pointman<br>Urban Infiltration</span>
+            </div>
+            <div class="acc-body"><div class="acc-body-inner"><p>Born and raised in Nova Kaelen's poorest brutalist sectors. Knows the city's sewer networks, underground tunnels, and forgotten subway lines better than anyone alive, mapping the path before Rook steps foot inside.</p></div></div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer>
+    VESPERIA DEFENSE NETWORK &middot; ARCHIVE FILE 07 &middot; THIS DOCUMENT IS A WORK OF FICTION<br>
+    ALL PERSONNEL, EVENTS AND ORGANIZATIONS DEPICTED ARE FICTITIOUS
+  </footer>
+
+</div>
+
+<script>
+/* =============================================================
+   JAVASCRIPT — tab switching, accordions, mobile menu, audio
+   ============================================================= */
+(function(){
+  "use strict";
+
+  var coverEl   = document.getElementById('cover');
+  var dossierEl = document.getElementById('dossier');
+  var openBtn   = document.getElementById('openDossierBtn');
+  var bgm       = document.getElementById('bgm');
+  var audioToggleBtn = document.getElementById('audioToggle');
+  var audioLabel = document.getElementById('audioLabel');
+  var menuBtn   = document.getElementById('menuBtn');
+  var tabNav    = document.getElementById('tabNav');
+
+  /* ---- Attempt autoplay as soon as the page loads ---- */
+  function tryAutoplay(){
+    var p = bgm.play();
+    if (p !== undefined){
+      p.catch(function(){
+        /* Autoplay blocked by browser — will retry on first user gesture */
+      });
+    }
+  }
+  window.addEventListener('load', tryAutoplay);
+
+  /* ---- COVER -> DOSSIER transition ---- */
+  openBtn.addEventListener('click', function(){
+    coverEl.classList.add('closing');
+    tryAutoplay(); // this click is a real user gesture, guaranteed to satisfy autoplay policy
+    setTimeout(function(){
+      coverEl.classList.add('hidden');
+      dossierEl.classList.add('visible');
+      window.scrollTo({top:0, behavior:'instant'});
+    }, 680);
+  });
+
+  /* ---- Audio mute/unmute toggle ---- */
+  var muted = false;
+  audioToggleBtn.addEventListener('click', function(){
+    muted = !muted;
+    bgm.muted = muted;
+    audioToggleBtn.classList.toggle('muted', muted);
+    audioLabel.textContent = muted ? 'BGM OFF' : 'BGM ON';
+    if(!muted){ tryAutoplay(); }
+  });
+
+  /* ---- Tab switching ---- */
+  var tabBtns = tabNav.querySelectorAll('.tab-btn');
+  tabBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      tabBtns.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+
+      document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+      var target = document.getElementById('panel-' + btn.dataset.target);
+      if(target){ target.classList.add('active'); }
+
+      // Close mobile nav after selection
+      tabNav.classList.remove('open');
+
+      // Scroll main content into view on mobile
+      document.querySelector('main').scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+
+  /* ---- Mobile hamburger menu ---- */
+  menuBtn.addEventListener('click', function(){
+    tabNav.classList.toggle('open');
+  });
+
+  /* ---- Generic accordion toggler (skills, medical, roster) ---- */
+  document.querySelectorAll('[data-acc]').forEach(function(header){
+    header.addEventListener('click', function(){
+      var item = header.closest('.acc-item, .roster-card');
+      if(!item) return;
+      item.classList.toggle('open');
+      var icon = header.querySelector('.acc-icon');
+      if(icon){ icon.textContent = item.classList.contains('open') ? '\u2212' : '+'; }
+    });
+  });
+
+})();
+</script>
+
+</body>
+</html>
