@@ -86,8 +86,9 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
    ========================================================================== */
 #cover{
   position:fixed;inset:0;z-index:50;
-  display:flex;align-items:center;justify-content:center;
-  padding:24px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:40px 20px;
   background:var(--void);
   transition:opacity .6s ease, visibility .6s ease;
 }
@@ -95,6 +96,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
 
 .cover-sheet{
   width:100%;max-width:760px;
+  margin:0 auto;
   border:1px solid var(--ink);
   padding:28px 20px;
   position:relative;
@@ -107,6 +109,33 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
 }
 .cover-sheet::before{top:-1px;left:-1px;border-right:none;border-bottom:none;}
 .cover-sheet::after{bottom:-1px;right:-1px;border-left:none;border-top:none;}
+
+/* ---------- signature motif: targeting-frame corner ticks ----------
+   Used on the cover sheet and reused via .brk on cards, accordions,
+   the roster, the biometrics grid, and photos — a consistent HUD/
+   reticle identity instead of plain rectangles everywhere. */
+.brk{position:relative;}
+.brk::before,
+.brk::after{
+  content:"";position:absolute;width:10px;height:10px;pointer-events:none;
+}
+.brk::before{top:-1px;left:-1px;border-top:1px solid var(--ink);border-left:1px solid var(--ink);}
+.brk::after{bottom:-1px;right:-1px;border-bottom:1px solid var(--ink);border-right:1px solid var(--ink);}
+
+/* boot log — cascading lines shown briefly before the cover settles */
+.boot-log{font-size:.66rem;color:var(--ink-60);line-height:1.9;margin-bottom:14px;}
+.boot-log div{opacity:0;animation:boot-line .25s ease forwards;}
+.boot-log div:nth-child(1){animation-delay:.05s;}
+.boot-log div:nth-child(2){animation-delay:.30s;}
+.boot-log div:nth-child(3){animation-delay:.55s;}
+.boot-log div:nth-child(4){animation-delay:.80s;color:var(--ink);}
+@keyframes boot-line{
+  0%{opacity:0;transform:translateX(-4px);}
+  100%{opacity:1;transform:translateX(0);}
+}
+@media (prefers-reduced-motion: reduce){
+  .boot-log div{animation:none;opacity:1;}
+}
 
 @keyframes flicker-in{
   0%{opacity:0;}
@@ -123,24 +152,18 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
   scrollbar-width:thin;
 }
 .ascii-wrap pre{
-  /* display:table + margin:0 auto centers the block as a whole while it
-     fits, and gracefully falls back to left-aligned + scrollable via the
-     wrapper's overflow-x when it's wider than the viewport (auto margins
-     can't go negative, so it never gets clipped on the left on mobile). */
+  /* Base size only — JS (fitAsciiArt) measures each wrapper's real
+     available width and sets the exact font-size needed so every banner
+     fills its container without wrapping, overflowing, or shrinking to
+     an unreadable size. This CSS value is only the no-JS fallback. */
   display:table;
   margin:0 auto;
   font-family:var(--mono);
-  font-size:9px;
-  line-height:1.15;
+  font-size:8px;
+  line-height:1.2;
   letter-spacing:0;
   white-space:pre;
   text-align:left;
-}
-@media (min-width:520px){
-  .ascii-wrap pre{font-size:12px;}
-}
-@media (min-width:760px){
-  .ascii-wrap pre{font-size:14px;}
 }
 
 .rule{border:none;border-top:1px solid var(--ink);margin:14px 0;}
@@ -199,19 +222,34 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
 
 .statusbar{
   position:sticky;top:0;z-index:40;
-  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  padding:8px 14px;
   border-bottom:1px solid var(--ink);
   background:var(--void);
   font-size:.68rem;letter-spacing:1px;
 }
-.statusbar .grow{flex:1 1 auto;min-width:120px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--ink-60);}
+.statusbar .row1{
+  display:flex;align-items:center;gap:10px;flex-wrap:nowrap;
+  padding:7px 14px 5px;
+}
+.statusbar .row2{
+  display:flex;align-items:center;
+  padding:0 14px 7px;
+  border-top:none;
+}
+.statusbar .fixed-item{flex:0 0 auto;white-space:nowrap;}
+.statusbar .grow{
+  flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap;
+  text-overflow:ellipsis;color:var(--ink-60);
+}
 .statusbar .blink{animation:blink 1.4s steps(1) infinite;}
-@keyframes blink{50%{opacity:0;}}
+@keyframes blink{50%{opacity:.15;}}
+.cursor-blink{animation:blink .9s steps(1) infinite;margin-left:2px;}
+@media (max-width:420px){
+  .statusbar .clock-item{display:none;}
+}
 #sound-toggle{
   background:transparent;color:var(--ink);border:1px solid var(--ink-40);
   font-family:var(--mono);font-size:.65rem;letter-spacing:1px;
-  padding:4px 8px;cursor:pointer;white-space:nowrap;
+  padding:4px 8px;cursor:pointer;white-space:nowrap;flex:0 0 auto;
 }
 #sound-toggle:hover{border-color:var(--ink);}
 
@@ -233,6 +271,7 @@ nav.tabs::-webkit-scrollbar-thumb{background:var(--ink-25);}
 
 .tab-btn{
   flex:0 0 auto;
+  display:flex;align-items:center;gap:8px;
   background:var(--void);color:var(--ink-60);
   border:1px solid var(--ink-40);border-bottom:none;
   font-family:var(--mono);font-size:.72rem;letter-spacing:1.5px;
@@ -241,13 +280,60 @@ nav.tabs::-webkit-scrollbar-thumb{background:var(--ink-25);}
   clip-path:polygon(10px 0,100% 0,100% 100%,0 100%);
   margin-left:-10px;
 }
+.tab-btn .led{
+  width:6px;height:6px;border:1px solid var(--ink-40);border-radius:50%;
+  flex:0 0 auto;
+}
+.tab-btn .tab-txt small{display:none;}
 .tab-btn:first-child{margin-left:0;}
 .tab-btn[aria-selected="true"]{
   color:var(--ink);background:var(--ink-12);border-color:var(--ink);
 }
+.tab-btn[aria-selected="true"] .led{background:var(--ink);border-color:var(--ink);}
+
+/* ---------- body shell: stacked on mobile, folder-index sidebar on
+   wide screens. This is the main structural departure from a generic
+   top-tabbed layout — the section list becomes a persistent case-file
+   index down the left edge, like tabs on a physical folder. ---------- */
+.body-shell{display:flex;flex-direction:column;flex:1;min-width:0;}
+
+@media (min-width:900px){
+  .body-shell{flex-direction:row;align-items:flex-start;}
+  nav.tabs{
+    flex:0 0 250px;
+    flex-direction:column;
+    gap:0;
+    padding:18px 0;
+    overflow-x:visible;
+    border-right:1px solid var(--ink);
+    position:sticky;
+    top:0;
+    align-self:stretch;
+  }
+  .tab-btn{
+    clip-path:none;
+    margin-left:0;
+    width:100%;
+    align-items:flex-start;
+    border:none;border-bottom:1px solid var(--ink-25);
+    border-left:3px solid transparent;
+    padding:16px 22px;
+  }
+  .tab-btn[aria-selected="true"]{
+    background:var(--ink-12);border-left:3px solid var(--ink);
+  }
+  .tab-btn .led{margin-top:3px;}
+  .tab-btn .tab-txt{display:flex;flex-direction:column;gap:5px;text-align:left;}
+  .tab-btn .tab-txt small{
+    display:block;font-size:.62rem;letter-spacing:.5px;
+    color:var(--ink-40);text-transform:none;
+  }
+  main{border-top:none;border-left:1px solid var(--ink);}
+}
 
 main{
   flex:1;
+  min-width:0;
   border-top:1px solid var(--ink);
   padding:0;
   perspective:1600px;
@@ -282,16 +368,24 @@ main{
 
 h2.doc-title{
   font-size:1rem;letter-spacing:2px;margin:0 0 4px;
-  border-bottom:1px solid var(--ink);padding-bottom:10px;
+  padding:0 0 10px 14px;
+  border-bottom:1px solid var(--ink);
+  border-left:3px solid var(--ink);
 }
-p.doc-sub{font-size:.72rem;color:var(--ink-60);margin:0 0 20px;letter-spacing:1px;}
+p.doc-sub{font-size:.72rem;color:var(--ink-60);margin:0 0 20px 14px;letter-spacing:1px;}
 
-/* field grid (personnel record rows) */
+/* form-sheet: bordered ledger container for personnel-record rows */
+.form-sheet{border:1px solid var(--ink-40);margin:0 0 18px;}
+.form-sheet .field-row:last-child{border-bottom:none;}
+
+/* field grid (personnel record rows) — carbon-copy ledger styling:
+   alternating row tint, instead of a plain label/value pair. */
 .field-row{
   display:grid;grid-template-columns:200px 1fr;gap:10px 18px;
-  padding:9px 0;border-bottom:1px dashed var(--ink-25);
+  padding:10px 16px;border-bottom:1px dashed var(--ink-25);
   font-size:.82rem;line-height:1.55;
 }
+.field-row:nth-child(odd){background:rgba(255,255,255,.03);}
 .field-row .k{color:var(--ink-60);letter-spacing:1px;font-size:.72rem;text-transform:uppercase;padding-top:2px;}
 @media (max-width:600px){
   .field-row{grid-template-columns:1fr;gap:4px;}
@@ -400,7 +494,62 @@ footer.doc-footer{
   padding:20px 14px 40px;letter-spacing:1.5px;
 }
 
-.mono-note{font-size:.68rem;color:var(--ink-40);text-align:right;margin-top:-6px;margin-bottom:14px;}
+.mono-note,.section-label{
+  display:flex;align-items:center;gap:10px;
+  font-size:.66rem;color:var(--ink-40);letter-spacing:2px;
+  margin:24px 0 12px;text-transform:uppercase;
+}
+.section-label::before,.section-label::after{
+  content:"";flex:1 1 auto;height:1px;background:var(--ink-25);
+}
+.section-label.first{margin-top:6px;}
+
+/* threat gauge (Country tab) */
+.gauge{margin:16px 0;}
+.gauge-label{font-size:.7rem;letter-spacing:1px;color:var(--ink-60);margin-bottom:8px;}
+.gauge-bar{border:1px solid var(--ink);height:16px;padding:2px;}
+.gauge-bar span{
+  display:block;height:100%;background:var(--ink);
+  background-image:repeating-linear-gradient(135deg, transparent 0 3px, rgba(0,0,0,.35) 3px 6px);
+}
+.gauge-value{font-size:.72rem;color:var(--ink-60);margin-top:6px;letter-spacing:1px;text-align:right;}
+
+/* pull-quote field note */
+.field-quote{
+  margin:18px 0;padding:12px 16px;border-left:2px solid var(--ink);
+  font-size:.82rem;line-height:1.7;font-style:italic;color:var(--ink-60);
+}
+.field-quote cite{display:block;margin-top:8px;font-size:.66rem;font-style:normal;color:var(--ink-40);letter-spacing:1px;}
+
+/* signal intercept card (Country tab) */
+.intercept{border:1px solid var(--ink-40);padding:14px 16px;margin:16px 0;}
+.intercept-meta{font-size:.64rem;letter-spacing:1px;color:var(--ink-40);margin-bottom:10px;}
+.intercept-wave{
+  margin:0 0 10px;font-size:.9rem;letter-spacing:1px;color:var(--ink-60);
+  overflow-x:auto;white-space:pre;
+}
+.intercept-txt{font-size:.82rem;line-height:1.7;margin:0;font-style:italic;}
+.ink-40{color:var(--ink-40);font-style:normal;}
+
+/* incident log (G7 background tab) */
+.incident-log{border:1px solid var(--ink-40);margin:16px 0;}
+.incident-row{
+  display:flex;gap:16px;padding:10px 16px;
+  border-bottom:1px dashed var(--ink-25);
+  font-size:.78rem;line-height:1.6;
+}
+.incident-row:last-child{border-bottom:none;}
+.incident-row:nth-child(odd){background:rgba(255,255,255,.03);}
+.i-date{flex:0 0 auto;color:var(--ink-40);letter-spacing:1px;font-size:.72rem;padding-top:1px;}
+.i-desc{flex:1 1 auto;color:var(--ink-60);}
+.redact-inline{
+  display:inline-block;background:var(--ink);color:transparent;
+  padding:0 6px;position:relative;overflow:hidden;user-select:none;
+}
+.redact-inline::before{
+  content:"";position:absolute;inset:0;
+  background-image:repeating-linear-gradient(135deg,#000 0 2px, transparent 2px 5px);
+}
 
 /* small helper */
 .vhidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
@@ -426,6 +575,12 @@ footer.doc-footer{
      ========================================================================== -->
 <section id="cover">
   <div class="cover-sheet">
+    <div class="boot-log" aria-hidden="true">
+      <div>&gt; ESTABLISHING SECURE UPLINK.......... [OK]</div>
+      <div>&gt; LOCATING TERMINAL ID: 07-G........... [OK]</div>
+      <div>&gt; LOADING ARCHIVE INDEX................ [OK]</div>
+      <div>&gt; RENDERING DOSSIER INTERFACE..........</div>
+    </div>
     <div class="ascii-wrap"><pre id="ascii-cover"> .d8888b.  8888888b.   .d88888b.  888     888 8888888b.      8888888888
 d88P  Y88b 888   Y88b d88P" "Y88b 888     888 888   Y88b           d88P
 888    888 888    888 888     888 888     888 888    888          d88P 
@@ -471,10 +626,14 @@ Y88b  d88P 888  T88b  Y88b. .d88P Y88b. .d88P 888             d88P
 <div id="app">
 
   <div class="statusbar">
-    <span>CLEARANCE: <span class="blink">LVL-4</span></span>
-    <span class="grow" id="ticker">UPLINK STABLE // ARCHIVE FILE 07 // SUBJECT: TASK FORCE G7</span>
-    <span id="clock">00:00:00</span>
-    <button id="sound-toggle" type="button" aria-pressed="true">♪ BGM: ON</button>
+    <div class="row1">
+      <span class="fixed-item">CLEARANCE: <span class="blink">LVL-4</span></span>
+      <span class="fixed-item clock-item" id="clock">00:00:00</span>
+      <button id="sound-toggle" type="button" aria-pressed="true">♪ BGM: ON</button>
+    </div>
+    <div class="row2">
+      <span class="grow" id="ticker">UPLINK STABLE // ARCHIVE FILE 07 // SUBJECT: TASK FORCE G7<span class="cursor-blink">█</span></span>
+    </div>
   </div>
 
   <div class="masthead">
@@ -497,10 +656,11 @@ Y88b  d88P 888  T88b  Y88b. .d88P Y88b. .d88P 888             d88P
     <div class="sub">GENERATION TWO // PERSONNEL &amp; STRATEGIC ARCHIVE // FILE-07</div>
   </div>
 
+  <div class="body-shell">
   <nav class="tabs" role="tablist" aria-label="Dossier sections">
-    <button class="tab-btn" role="tab" id="tabbtn-1" aria-controls="panel-1" aria-selected="true" data-target="1">01 // SUBJECT: ROOK</button>
-    <button class="tab-btn" role="tab" id="tabbtn-2" aria-controls="panel-2" aria-selected="false" data-target="2">02 // THE COUNTRY</button>
-    <button class="tab-btn" role="tab" id="tabbtn-3" aria-controls="panel-3" aria-selected="false" data-target="3">03 // G7 BACKGROUND &amp; ROSTER</button>
+    <button class="tab-btn" role="tab" id="tabbtn-1" aria-controls="panel-1" aria-selected="true" data-target="1"><span class="led"></span><span class="tab-txt">01 // SUBJECT: ROOK<small>Lead Breacher, CQB Specialist</small></span></button>
+    <button class="tab-btn" role="tab" id="tabbtn-2" aria-controls="panel-2" aria-selected="false" data-target="2"><span class="led"></span><span class="tab-txt">02 // THE COUNTRY<small>URV &amp; Nova Kaelen Overview</small></span></button>
+    <button class="tab-btn" role="tab" id="tabbtn-3" aria-controls="panel-3" aria-selected="false" data-target="3"><span class="led"></span><span class="tab-txt">03 // G7 BACKGROUND &amp; ROSTER<small>Lineage, Incidents, Operators</small></span></button>
   </nav>
 
   <main id="main">
@@ -510,21 +670,23 @@ Y88b  d88P 888  T88b  Y88b. .d88P Y88b. .d88P 888             d88P
       <h2 class="doc-title">PERSONNEL RECORD // SUBJECT: "ROOK"</h2>
       <p class="doc-sub">FORM VDN-PR-07 // GENERATION TWO ROSTER // LEAD BREACHER, TASK FORCE G7</p>
 
-      <div class="field-row"><div class="k">Callsign</div><div class="v">ROOK</div></div>
-      <div class="field-row"><div class="k">Rank</div><div class="v">[CLASSIFIED: Master Sergeant / Tier-1 Senior Operative]</div></div>
-      <div class="field-row"><div class="k">Role</div><div class="v">Lead Breacher / Close-Quarters Battle (CQB) Specialist</div></div>
-      <div class="field-row"><div class="k">Assigned Unit</div><div class="v">Task Force G7 (Generation Two)</div></div>
-      <div class="field-row"><div class="k">Identity</div><div class="v"><span class="redact">DATA EXPUNGED BY ORDER OF HIGH COMMAND</span></div></div>
-      <div class="field-row"><div class="k">Status</div><div class="v">Active / Disavowable Asset</div></div>
+      <div class="form-sheet brk">
+        <div class="field-row"><div class="k">Callsign</div><div class="v">ROOK</div></div>
+        <div class="field-row"><div class="k">Rank</div><div class="v">[CLASSIFIED: Master Sergeant / Tier-1 Senior Operative]</div></div>
+        <div class="field-row"><div class="k">Role</div><div class="v">Lead Breacher / Close-Quarters Battle (CQB) Specialist</div></div>
+        <div class="field-row"><div class="k">Assigned Unit</div><div class="v">Task Force G7 (Generation Two)</div></div>
+        <div class="field-row"><div class="k">Identity</div><div class="v"><span class="redact">DATA EXPUNGED BY ORDER OF HIGH COMMAND</span></div></div>
+        <div class="field-row"><div class="k">Status</div><div class="v">Active / Disavowable Asset</div></div>
+      </div>
 
-      <div class="mono-note">// BIOMETRICS &amp; PHYSICAL PARAMETERS</div>
-      <div class="grid3">
+      <div class="section-label">BIOMETRICS &amp; PHYSICAL PARAMETERS</div>
+      <div class="grid3 brk">
         <div class="cell"><span class="k">HEIGHT</span><span class="v">6'4"</span></div>
         <div class="cell"><span class="k">WEIGHT</span><span class="v">235 LBS</span></div>
         <div class="cell"><span class="k">BLOOD TYPE</span><span class="v">O-NEGATIVE</span></div>
       </div>
 
-      <div class="accordion" id="acc-rook">
+      <div class="accordion brk" id="acc-rook">
         <div class="acc-item">
           <button class="acc-head" aria-expanded="false" data-acc="psych">
             <span>[ + ] PSYCHOLOGICAL EVALUATION</span><span class="ico">◇</span>
@@ -577,7 +739,7 @@ Y88b  d88P 888  T88b  Y88b. .d88P Y88b. .d88P 888             d88P
           </button>
           <div class="acc-body" id="acc-loadout">
             <div class="acc-body-in">
-              <div class="figure">
+              <div class="figure brk">
                 <img src="rook_loadout.jpg" alt="Operative ROOK — field loadout reference (image on file, not distributed with this archive export)"
                      onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-fallback',textContent:'[ IMAGE ON FILE — NOT TRANSMITTED // REF: rook_loadout.jpg ]'}))">
                 <div class="cap">FIG. 1 — SRC: rook_loadout.jpg // FIELD LOADOUT REFERENCE, GENERATION TWO ISSUE</div>
@@ -605,16 +767,33 @@ Y88b  d88P 888  T88b  Y88b. .d88P Y88b. .d88P 888             d88P
             </div>
           </div>
         </div>
+
+        <div class="acc-item">
+          <button class="acc-head" aria-expanded="false" data-acc="record">
+            <span>[ + ] COMMENDATIONS &amp; DISCIPLINARY RECORD</span><span class="ico">◇</span>
+          </button>
+          <div class="acc-body" id="acc-record">
+            <div class="acc-body-in">
+              <ul>
+                <li><b>Cross of Vesperia (posthumous nomination, withdrawn)</b> — commendation drafted following the Nova Kaelen granary breach, later shelved when High Command classified the operation as never having occurred.</li>
+                <li><b>Two formal reprimands</b> — both for disregarding stand-down orders mid-engagement. Neither reprimand altered subsequent field behavior.</li>
+                <li><b>Command note</b> — "Compliant with the mission. Non-compliant with everything else." — Capt. A. Vance, after-action addendum.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <blockquote class="field-quote">
+        "Wedge is set. Three, two—" — final fragment of ROOK's comms feed, recovered from
+        the Nova Kaelen granary breach. Transmission cuts fourteen seconds before the
+        after-action report begins.
+        <cite>COMMS LOG EXCERPT // AUDIO ON FILE, NOT TRANSMITTED WITH THIS ARCHIVE</cite>
+      </blockquote>
     </section>
 
     <!-- ============ PANEL 2: THE COUNTRY ============ -->
     <section class="panel" id="panel-2" role="tabpanel" aria-labelledby="tabbtn-2" hidden>
-      <div class="ascii-wrap"><pre>  ooooooo8 oooooooooo    ooooooo  ooooo  oooo oooooooooo  ooooooooooo
-o888    88  888    888 o888   888o 888    88   888    888 888    888 
-888    oooo 888oooo88  888     888 888    88   888oooo88        888  
-888o    88  888  88o   888o   o888 888    88   888             888   
- 888ooo888 o888o  88o8   88ooo88    888oo88   o888o           888    </pre></div>
       <h2 class="doc-title">MINISTRY OF DEFENSE // VESPERIAN INTELLIGENCE SERVICES</h2>
       <p class="doc-sub">CLASSIFIED DOSSIER // EYES ONLY // SUBJECT: STRATEGIC OVERVIEW &amp; UNIT LINEAGE — TASK FORCE G7</p>
 
@@ -636,7 +815,13 @@ o888    88  888    888 o888   888o 888    88   888    888 888    888
         </div>
       </div>
 
-      <div class="card">
+      <div class="gauge">
+        <div class="gauge-label">THREAT ASSESSMENT — NOVA KAELEN METRO (SCI ACTIVITY)</div>
+        <div class="gauge-bar"><span style="width:83%"></span></div>
+        <div class="gauge-value">8.3 / 10 — SEVERE // TRENDING UPWARD</div>
+      </div>
+
+      <div class="card brk">
         <span class="tag">ACTIVE THREAT MATRIX // THE 2020s CRISIS</span>
         <p style="font-size:.82rem;line-height:1.7;margin:0 0 10px;">
           Vesperia is currently embroiled in an unacknowledged, asymmetric shadow war
@@ -672,21 +857,18 @@ o888    88  888    888 o888   888o 888    88   888    888 888    888
           </div>
         </div>
       </div>
+
+      <div class="section-label">SIGINT — INTERCEPT LOG // GLITCH (M. STERLING)</div>
+      <div class="intercept brk">
+        <div class="intercept-meta">CHANNEL: SCI-ENCRYPT-7 (BROKEN) &nbsp;//&nbsp; 03:41 NKT &nbsp;//&nbsp; CONFIDENCE: HIGH</div>
+        <pre class="intercept-wave">╱╲──╱╲╱╲───╱╲──╱╲╱╲╱╲──────╱╲╱╲──╱╲───╱╲╱╲╱╲──╱╲──</pre>
+        <p class="intercept-txt">"…second convoy holds at the granary until dark. Tell command the
+        ghosts won't find us in our own basement…" <span class="ink-40">[remainder corrupted]</span></p>
+      </div>
     </section>
 
     <!-- ============ PANEL 3: G7 BACKGROUND & ROSTER ============ -->
     <section class="panel" id="panel-3" role="tabpanel" aria-labelledby="tabbtn-3" hidden>
-      <div class="ascii-wrap"><pre>ooooooooooo   o       oooooooo8 oooo   oooo              
-88  888  88  888     888         888  o88                
-    888     8  88     888oooooo  888888                  
-    888    8oooo88           888 888  88o                
-   o888o o88o  o888o o88oooo888 o888o o888o              
-                                                         
-ooooooooooo  ooooooo  oooooooooo    oooooooo8 ooooooooooo
- 888    88 o888   888o 888    888 o888     88  888    88 
- 888ooo8   888     888 888oooo88  888o   o888 888ooo8   
- 888       888o   o888 888  88o   888o     oo  888    oo 
-o888o        88ooo88  o888o  88o8  888oooo888  o888ooo8888</pre></div>
       <h2 class="doc-title">CLASSIFIED MILITARY ARCHIVE // EYES ONLY</h2>
       <p class="doc-sub">DOC REF: DOC-ARC-1998-RESTRICTED // SUBJECT: TASK FORCE G7 HISTORICAL LINEAGE &amp; DOSSIER EXCERPT</p>
 
@@ -728,7 +910,27 @@ o888o        88ooo88  o888o  88o8  888oooo888  o888ooo8888</pre></div>
         </div>
       </div>
 
-      <div class="mono-note">// G7 VISUAL ARCHIVE — SELECTED IMAGE COLLECTION</div>
+      <div class="section-label">INCIDENT LOG — GENERATION TWO DEPLOYMENTS (SELECTED)</div>
+      <div class="incident-log brk">
+        <div class="incident-row">
+          <span class="i-date">2024.03</span>
+          <span class="i-desc">Nova Kaelen Granary Breach — <span class="redact-inline">details withheld</span></span>
+        </div>
+        <div class="incident-row">
+          <span class="i-date">2024.11</span>
+          <span class="i-desc">Overpass District extraction — zero friendly casualties, <span class="redact-inline">civilian count disputed</span></span>
+        </div>
+        <div class="incident-row">
+          <span class="i-date">2025.06</span>
+          <span class="i-desc">SCI signal node neutralization — <span class="redact-inline">method not logged</span></span>
+        </div>
+        <div class="incident-row">
+          <span class="i-date">2026.02</span>
+          <span class="i-desc"><span class="redact-inline">entry sealed pending review</span></span>
+        </div>
+      </div>
+
+      <div class="section-label">G7 VISUAL ARCHIVE — SELECTED IMAGE COLLECTION</div>
       <div class="photo-grid" id="photo-grid">
         <!-- 4 dossier photographs — explicit img tags per spec, graceful fallback if asset is absent -->
         <div class="photo">
@@ -753,8 +955,13 @@ o888o        88ooo88  o888o  88o8  888oooo888  o888ooo8888</pre></div>
         </div>
       </div>
 
-      <div class="mono-note">// GENERATION TWO ROSTER — ACTIVE OPERATORS (TAP TO EXPAND)</div>
-      <div class="roster" id="roster">
+      <div class="section-label">GENERATION TWO ROSTER — ACTIVE OPERATORS (TAP TO EXPAND)</div>
+      <div class="grid3 brk" style="margin:16px 0;">
+        <div class="cell"><span class="k">JOINT DEPLOYMENTS</span><span class="v">47</span></div>
+        <div class="cell"><span class="k">CASUALTIES</span><span class="v">0</span></div>
+        <div class="cell"><span class="k">DAYS SINCE STAND-DOWN</span><span class="v">212</span></div>
+      </div>
+      <div class="roster brk" id="roster">
         <div class="op">
           <button class="op-head" aria-expanded="false" data-op="o1">
             <span><span class="num">01</span><span class="name">VANGUARD</span> — Capt. Aaron Vance</span>
@@ -813,6 +1020,7 @@ o888o        88ooo88  o888o  88o8  888oooo888  o888ooo8888</pre></div>
     </section>
 
   </main>
+  </div>
 
   <footer class="doc-footer">
     END OF FILE-07 TRANSMISSION // VESPERIA DEFENSE NETWORK // ALL RIGHTS DISAVOWED
@@ -822,6 +1030,29 @@ o888o        88ooo88  o888o  88o8  888oooo888  o888ooo8888</pre></div>
 <script>
 (function(){
   "use strict";
+
+  /* ---------- ascii art auto-fit ----------
+     Measures each wrapper's real available width and sets the exact
+     font-size needed so every banner fills its container edge-to-edge
+     without wrapping, overflowing, or shrinking to an unreadable size.
+     Far more reliable across devices than a CSS vw-based guess. */
+  function fitAsciiArt(){
+    document.querySelectorAll(".ascii-wrap").forEach(function(wrap){
+      var pre = wrap.querySelector("pre");
+      if(!pre || wrap.offsetParent === null) return; // skip hidden panels
+      var probe = 24; // px baseline used purely to measure natural width
+      pre.style.fontSize = probe + "px";
+      var natural = pre.scrollWidth;
+      var available = wrap.clientWidth;
+      if(!natural || !available) return;
+      var size = probe * (available / natural);
+      size = Math.max(6, Math.min(size, 22));
+      pre.style.fontSize = size + "px";
+    });
+  }
+  window.addEventListener("load", fitAsciiArt);
+  window.addEventListener("resize", fitAsciiArt);
+  window.addEventListener("orientationchange", fitAsciiArt);
 
   /* ---------- clocks ---------- */
   function pad(n){return n.toString().padStart(2,"0");}
@@ -860,9 +1091,13 @@ o888o        88ooo88  o888o  88o8  888oooo888  o888ooo8888</pre></div>
   ];
   var ti = 0;
   var tickerEl = document.getElementById("ticker");
+  var cursorSpan = tickerEl ? tickerEl.querySelector(".cursor-blink") : null;
   setInterval(function(){
     ti = (ti+1) % tickerMsgs.length;
-    if(tickerEl) tickerEl.textContent = tickerMsgs[ti];
+    if(tickerEl){
+      tickerEl.textContent = tickerMsgs[ti];
+      if(cursorSpan) tickerEl.appendChild(cursorSpan);
+    }
   }, 3400);
 
   /* ---------- audio ---------- */
@@ -906,6 +1141,7 @@ o888o        88ooo88  o888o  88o8  888oooo888  o888ooo8888</pre></div>
       cover.style.display = "none";
       var firstTab = document.getElementById("tabbtn-1");
       if(firstTab) firstTab.focus({preventScroll:true});
+      fitAsciiArt(); // masthead banners were hidden (display:none) until now
     }, 650);
   });
 
@@ -948,6 +1184,7 @@ o888o        88ooo88  o888o  88o8  888oooo888  o888ooo8888</pre></div>
       }, 520);
 
       current = target;
+      fitAsciiArt(); // incoming panel's banner was hidden until now
     }, 520);
   }
 
@@ -997,8 +1234,5 @@ o888o        88ooo88  o888o  88o8  888oooo888  o888ooo8888</pre></div>
 
 })();
 </script>
-</body>
-</html>
-
 </body>
 </html>
